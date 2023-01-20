@@ -2,8 +2,6 @@ package com.flow.project.controller;
 
 import com.flow.project.entity.File;
 import com.flow.project.service.FileService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,8 +15,6 @@ import java.util.Map;
 
 @Controller
 public class RootController {
-
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
     FileService fileService;
@@ -40,6 +36,6 @@ public class RootController {
         File file = new File();
         file.setFile((String)param.get("file"));
         file.setIp((String)param.get("ip"));
-        return new ResponseEntity<File>(fileService.uploadFile(file),HttpStatus.OK);
+        return new ResponseEntity<>(fileService.uploadFile(file),HttpStatus.OK);
     }
 }

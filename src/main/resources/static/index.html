@@ -33,6 +33,7 @@
         }
 
         p {
+            margin: 0;
             font-size: smaller;
         }
 
@@ -57,7 +58,7 @@
 
         var checkArr = ["bat", "cmd", "com", "cpl", "exe", "scr", "js"];
         var addArr = [];
-        var result = $("#checkResult");
+        var checkResult = $("#checkResult").value || "";
         var ip;
 
         $(document).ready(function () {
@@ -68,7 +69,7 @@
             }
 
             $.getJSON("https://api.ipify.org?format=jsonp&callback=?",
-                function(json) {
+                function (json) {
                     ip = json.ip;
                     getValue(ip);
                 }
@@ -76,14 +77,14 @@
 
         });
 
-        function getValue(value){
+        function getValue(value) {
             $.ajax({
                 type: "post",
                 url: "/getValue",
-                data:JSON.stringify({
-                    ip : value,
+                data: JSON.stringify({
+                    ip: value,
                 }),
-                dataType : 'json',
+                dataType: 'json',
                 contentType: "application/json",
                 success: (data) => {
                     setValue(data.file);
@@ -92,7 +93,7 @@
         }
 
         function checkBox(checked) {
-            var value = result.value;
+            var value = checkResult;
             if (checked.checked == true) {
                 if (value == "") {
                     value = checked.getAttribute("value");
@@ -117,19 +118,23 @@
             if (value == "") {
                 alert("입력한 값이 없습니다.");
             } else {
-                var resultArr = result.value.split(",");
-                if (resultArr.indexOf(value) != -1) {
-                    alert("이미 존재합니다.");
+                if (checkResult == "") {
+                    upload(value);
                 } else {
-                    resultArr.push(value);
+                    var resultArr = checkResult.split(",");
+                    if (resultArr.indexOf(value) != -1) {
+                        alert("이미 존재합니다.");
+                    } else {
+                        resultArr.push(value);
+                    }
+                    upload(resultArr.join(","));
                 }
-                upload(resultArr.join(","));
             }
         }
 
         function removeValue(obj) {
             var value;
-            var resultArr = result.value.split(",");
+            var resultArr = checkResult.split(",");
             for (var i = 0; i < resultArr.length; i++) {
                 if (resultArr[i] == obj.id) {
                     resultArr.splice(i, 1);
@@ -147,11 +152,11 @@
                 $.ajax({
                     type: "POST",
                     url: "/uploadValue",
-                    data:JSON.stringify({
-                      file : value,
-                        ip : ip
+                    data: JSON.stringify({
+                        file: value,
+                        ip: ip
                     }),
-                    dataType : 'json',
+                    dataType: 'json',
                     contentType: "application/json",
                     success: (data) => {
                         getValue(data.ip);
@@ -161,37 +166,39 @@
         }
 
         function setValue(value) {
-            result.value = value;
+            checkResult = value;
             document.getElementById("checkResult").value = value;
-            document.getElementById("addText").value = null;
-            var resultArr = value.split(",");
             var newArr = [];
-            for (var i = 0; i < resultArr.length; i++) {
-                $('input:checkbox[name="check"]').each(function () {
-                    if (this.value == resultArr[i]) { //값 비교
-                        this.checked = true; //checked 처리
+            if (value == ""){
+                addArr = [];
+            }else {
+                document.getElementById("addText").value = null;
+                var resultArr = value.split(",");
+                for (var i = 0; i < resultArr.length; i++) {
+                    $('input:checkbox[name="check"]').each(function () {
+                        if (this.value == resultArr[i]) { //값 비교
+                            this.checked = true; //checked 처리
+                        }
+                    });
+                    if (checkArr.indexOf(resultArr[i]) == -1 && addArr.indexOf(resultArr[i]) == -1) {
+                        addArr.push(resultArr[i]);
+                        newArr.push(resultArr[i]);
                     }
-                });
-                if (checkArr.indexOf(resultArr[i]) == -1 && addArr.indexOf(resultArr[i]) == -1) {
-                    addArr.push(resultArr[i]);
-                    newArr.push(resultArr[i]);
                 }
-            }
-            for (var add of newArr) {
-                $('#addFile')
-                    .append(`<label for="${add}" class="${add}">${add}<button type="button" id="${add}" class="${add}" onclick="removeValue(this)" name="addButton">X</button></label>`)
+                for (var add of newArr) {
+                    $('#addFile')
+                        .append(`<label for="${add}" class="${add}">${add}<button type="button" id="${add}" class="${add}" onclick="removeValue(this)" name="addButton">X</button></label>`)
+                }
             }
             var removeArr = $('button:button[name="addButton"]');
 
-            for(var arr of removeArr) {
-                if(addArr.indexOf(arr.id) == -1){
+            for (var arr of removeArr) {
+                if (addArr.indexOf(arr.id) == -1) {
                     $('.' + arr.id).remove();
                 }
             }
-
-            var num = removeArr.length;
+            var num = $('button:button[name="addButton"]').length;
             $("p").text(num + "/200");
-
         }
 
     </script>
@@ -232,7 +239,7 @@
                 <tr>
                     <td>
                         <div class="fileDiv">
-                            <p>1/200</p>
+                            <p>0/200</p>
                             <div id="addFile" style="margin-top: 5px">
                             </div>
                         </div>
