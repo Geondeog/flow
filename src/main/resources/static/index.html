@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>파일 확장자</title>
+
+    <style>
+        hr {
+            width: 100%;
+        }
+
+        table {
+            margin-left: 10px;
+            border-collapse: collapse;
+            width: 80%;
+        }
+
+        th {
+            width: 120px;
+            text-align: left;
+        }
+
+        td {
+            width: auto;
+        }
+
+        .fileDiv {
+            border: 1px solid #7c7c7b;
+            border-radius: 5px;
+            padding: 5px;
+            height: 400px;
+        }
+
+        p {
+            margin: 0%;
+            font-size: smaller;
+        }
+
+        #addFile label {
+            padding: 1px;
+            border: 1px solid #7c7c7b;
+            border-radius: 5px;
+        }
+
+        #addFile button {
+            border: none;
+            background-color: transparent;
+            cursor: pointer;
+            color: gray;
+        }
+
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script type="text/javascript">
+
+        var checkArr = ["bat", "cmd", "com", "cpl", "exe", "scr", "js"];
+        var addArr = [];
+        var result = $("#checkResult");
+
+        $(document).ready(function () {
+            for (var value of checkArr) {
+                $('#checkDiv')
+                    .append(`<input type="checkbox" onchange="checkBox(this)" id="${value}" name="check" value="${value}">`)
+                    .append(`<label for="${value}">${value}</label>`)
+            }
+
+            $.ajax({
+                type: "GET",
+                url: "/getValue",
+                success: (data) => {
+                    setValue(data);
+                }
+            });
+
+        });
+
+        function checkBox(checked) {
+            var value = result.value;
+            if (checked.checked == true) {
+                if (value == "") {
+                    value = checked.getAttribute("value");
+                } else {
+                    value += "," + checked.getAttribute("value");
+                }
+            } else {
+                var resultArr = value.split(",");
+                for (var i = 0; i < resultArr.length; i++) {
+                    if (resultArr[i] == checked.getAttribute("value")) {
+                        resultArr.splice(i, 1);
+                        break;
+                    }
+                }
+                value = resultArr.join(",");
+            }
+            upload(value);
+        }
+
+        function addValue($value) {
+            var value = $value;
+            if (value == "") {
+                alert("입력한 값이 없습니다.");
+            } else {
+                var resultArr = result.value.split(",");
+                if (resultArr.indexOf(value) != -1) {
+                    alert("이미 존재합니다.");
+                } else {
+                    resultArr.push(value);
+                }
+                upload(resultArr.join(","));
+            }
+        }
+
+        function removeValue(obj) {
+            var value;
+            var resultArr = result.value.split(",");
+            for (var i = 0; i < resultArr.length; i++) {
+                if (resultArr[i] == obj.id) {
+                    resultArr.splice(i, 1);
+                    addArr.splice(addArr.indexOf(obj.id), 1);
+                }
+            }
+            value = resultArr.join(",");
+            upload(value);
+        }
+
+        function upload(value) {
+            if (addArr.length >= 200) {
+                alert("더 추가할 수 없습니다.");
+            } else {
+                $.ajax({
+                    type: "POST",
+                    url: "/uploadValue",
+                    data:JSON.stringify({
+                      value : value,
+                    }),
+                    dataType : 'json',
+                    contentType: "application/json",
+                    success: (data) => {
+                        console.log(data);
+                        setValue(data.value);
+                    }
+                });
+            }
+        }
+
+        function setValue(value) {
+            result.value = value;
+            document.getElementById("checkResult").value = value;
+            document.getElementById("addText").value = null;
+            var resultArr = value.split(",");
+            var newArr = [];
+            for (var i = 0; i < resultArr.length; i++) {
+                $('input:checkbox[name="check"]').each(function () {
+                    if (this.value == resultArr[i]) { //값 비교
+                        this.checked = true; //checked 처리
+                    }
+                });
+                if (checkArr.indexOf(resultArr[i]) == -1 && addArr.indexOf(resultArr[i]) == -1) {
+                    addArr.push(resultArr[i]);
+                    newArr.push(resultArr[i]);
+                }
+            }
+            for (var add of newArr) {
+                $('#addFile')
+                    .append(`<label for="${add}" class="${add}">${add}<button type="button" id="${add}" class="${add}" onclick="removeValue(this)" name="addButton">X</button></label>`)
+            }
+            var removeArr = $('button:button[name="addButton"]');
+
+            for(var arr of removeArr) {
+                if(addArr.indexOf(arr.id) == -1){
+                    $('.' + arr.id).remove();
+                }
+            }
+
+            var num = $('button:button[name="addButton"]').length;
+            $("p").text(num + "/200");
+
+        }
+
+    </script>
+
+
+</head>
+
+<body>
+<div style="width: 850px;">
+    <hr>
+    <div style="padding-left: 20px;">
+        <h1>◎ 파일 확장자 차단</h1>
+        <hr color="black">
+        <div>
+            <h2>파일확장자에 따라 특정 형식의 파일을 첨부하거나 전송하지 못하도록 제한</h2>
+            <input type="text" id="checkResult" readonly>
+            <table>
+                <tr>
+                    <th>
+                        <label>고정 확장자</label>
+                    </th>
+                    <td>
+                        <div id="checkDiv"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <th rowspan="2" style="vertical-align: top;">
+                        <label>커스텀 확장자</label>
+                    </th>
+                    <td>
+                        <input type="text" id="addText" placeholder="확장자 입력" maxlength="20"
+                               onkeyup="if(window.event.keyCode==13){addValue(addText.value)}">
+                        <button type="button"
+                                id="add" onclick="addValue(addText.value)">+추가
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="fileDiv">
+                            <p>1/200</p>
+                            <div id="addFile" style="margin: 5px">
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+
+</html>
