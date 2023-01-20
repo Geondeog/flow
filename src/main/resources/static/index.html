@@ -39,6 +39,7 @@
 
         #addFile label {
             padding: 1px;
+            margin: 1px;
             border: 1px solid #7c7c7b;
             border-radius: 5px;
         }
@@ -57,6 +58,7 @@
         var checkArr = ["bat", "cmd", "com", "cpl", "exe", "scr", "js"];
         var addArr = [];
         var result = $("#checkResult");
+        var ip;
 
         $(document).ready(function () {
             for (var value of checkArr) {
@@ -65,15 +67,29 @@
                     .append(`<label for="${value}">${value}</label>`)
             }
 
-            $.ajax({
-                type: "GET",
-                url: "/getValue",
-                success: (data) => {
-                    setValue(data);
+            $.getJSON("https://api.ipify.org?format=jsonp&callback=?",
+                function(json) {
+                    ip = json.ip;
+                    getValue(ip);
                 }
-            });
+            );
 
         });
+
+        function getValue(value){
+            $.ajax({
+                type: "post",
+                url: "/getValue",
+                data:JSON.stringify({
+                    ip : value,
+                }),
+                dataType : 'json',
+                contentType: "application/json",
+                success: (data) => {
+                    setValue(data.file);
+                }
+            });
+        }
 
         function checkBox(checked) {
             var value = result.value;
@@ -132,13 +148,13 @@
                     type: "POST",
                     url: "/uploadValue",
                     data:JSON.stringify({
-                      value : value,
+                      file : value,
+                        ip : ip
                     }),
                     dataType : 'json',
                     contentType: "application/json",
                     success: (data) => {
-                        console.log(data);
-                        setValue(data.value);
+                        getValue(data.ip);
                     }
                 });
             }

@@ -2,12 +2,9 @@ package com.flow.project.entity;
 
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.GeneratorType;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import java.sql.Timestamp;
+import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Data
 @ToString @Entity
@@ -16,9 +13,12 @@ import java.sql.Timestamp;
 public class File {
 
     @Id
-    private String no;
-    private String fileString;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private int no;
+
+    private String file;
+    private String ip;
 
     @CreationTimestamp
-    private Timestamp updatedate;
+    private LocalDateTime updatedate = LocalDateTime.now();
 }

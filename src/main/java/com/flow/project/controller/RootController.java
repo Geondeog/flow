@@ -1,6 +1,12 @@
 package com.flow.project.controller;
 
 import com.flow.project.entity.File;
+import com.flow.project.service.FileService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -12,6 +18,11 @@ import java.util.Map;
 @Controller
 public class RootController {
 
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    @Autowired
+    FileService fileService;
+
     @GetMapping("/")
     public String viewPage() {
         return "index.html";
@@ -19,15 +30,16 @@ public class RootController {
 
     @ResponseBody
     @RequestMapping("/getValue")
-    public String getValue() {
-        String value = "js,cmd,com,txt";
-        return value;
+    public ResponseEntity getValue(@RequestBody Map param) {
+        return new ResponseEntity<>(fileService.findFile((String)param.get("ip")),HttpStatus.OK);
     }
 
     @ResponseBody
     @RequestMapping("/uploadValue")
-    public Map uploadValue(@RequestBody Map param) {
-        System.out.println("path:"+param);
-        return param;
+    public ResponseEntity uploadValue(@RequestBody Map param) {
+        File file = new File();
+        file.setFile((String)param.get("file"));
+        file.setIp((String)param.get("ip"));
+        return new ResponseEntity<File>(fileService.uploadFile(file),HttpStatus.OK);
     }
 }
