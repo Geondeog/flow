@@ -33,7 +33,6 @@
         }
 
         p {
-            margin: 0%;
             font-size: smaller;
         }
 
@@ -42,6 +41,7 @@
             margin: 1px;
             border: 1px solid #7c7c7b;
             border-radius: 5px;
+            text-align: center;
         }
 
         #addFile button {
@@ -189,7 +189,7 @@
                 }
             }
 
-            var num = $('button:button[name="addButton"]').length;
+            var num = removeArr.length;
             $("p").text(num + "/200");
 
         }
@@ -207,7 +207,7 @@
         <hr color="black">
         <div>
             <h2>파일확장자에 따라 특정 형식의 파일을 첨부하거나 전송하지 못하도록 제한</h2>
-            <input type="text" id="checkResult" readonly>
+            <input type="text" id="checkResult" readonly hidden>
             <table>
                 <tr>
                     <th>
@@ -233,7 +233,7 @@
                     <td>
                         <div class="fileDiv">
                             <p>1/200</p>
-                            <div id="addFile" style="margin: 5px">
+                            <div id="addFile" style="margin-top: 5px">
                             </div>
                         </div>
                     </td>
