@@ -103,6 +103,14 @@
                 showLoaderOnConfirm: true,
             }).then((result) => {
                 if (result.isConfirmed) {
+                    var reg = /[^a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣]/gim;
+                    if (reg.test(result.value)) {
+                        Swal.fire({
+                            icon: 'question',
+                            title: '확장자형식인가요?',
+                            text: '입력값을 확인하세요.',
+                        });
+                    } else{
                     if (checkArr.indexOf(result.value) != -1) {
                         Swal.fire('이미 존재합니다.');
                     } else {
@@ -132,6 +140,7 @@
                                 )
                             })
                     }
+                }
                 }
             })
         }
@@ -216,7 +225,7 @@
                 if (value == "") {
                     Swal.fire({
                         icon: 'error',
-                        title: '어머나',
+                        title: '확장자 입력',
                         text: '입력한 값이 없습니다.',
                     });
                 } else {
@@ -224,7 +233,7 @@
                     if (reg.test(value)) {
                         Swal.fire({
                             icon: 'question',
-                            title: '확장자에요',
+                            title: '확장자형식인가요?',
                             text: '입력값을 확인하세요.',
                         });
                     } else {
@@ -298,7 +307,8 @@
                 }
                 for (var add of newArr) {
                     $('#addFile')
-                        .append(`<label id="${add}" >${add}<input type="button" name="${add}" onclick="removeValue(this)" class="addButton" value="X"></label>`)
+                        .append(`<label id="${add}" >${add}</label>`)
+                        .append('<input type="button" name="${add}" onclick="removeValue(this)" class="addButton" value="X">')
                 }
             }
             var removeArr = $('#addFile>label');
@@ -306,6 +316,7 @@
             for (var arr of removeArr) {
                 if (addArr.indexOf(arr.id) == -1) {
                     $('#' + arr.id).remove();
+                    $('input[name=' + arr.id + ']').remove();
                 }
             }
             var num = $('#addFile>label').length;
