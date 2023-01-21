@@ -16,6 +16,7 @@ public class File {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int no;
 
+    @Lob
     private String file;
     private String ip;
 

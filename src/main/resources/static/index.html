@@ -29,12 +29,19 @@
             border: 1px solid #7c7c7b;
             border-radius: 5px;
             padding: 5px;
-            height: 400px;
+            height: auto;
+            min-height: 500px;
+            overflow: hidden;
         }
 
         p {
             margin: 0;
             font-size: smaller;
+        }
+
+        #addFile {
+            margin-top: 5px;
+            word-break: break-all;
         }
 
         #addFile label {
@@ -43,9 +50,11 @@
             border: 1px solid #7c7c7b;
             border-radius: 5px;
             text-align: center;
+            white-space: nowrap;
+            display: inline-flex;
         }
 
-        #addFile button {
+        .addButton {
             border: none;
             background-color: transparent;
             cursor: pointer;
@@ -54,6 +63,7 @@
 
     </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
     <script type="text/javascript">
 
         var checkArr = ["bat", "cmd", "com", "cpl", "exe", "scr", "js"];
@@ -113,24 +123,36 @@
         }
 
         function addValue($value) {
-            var value = $value;
-            if (value == "") {
-                alert("입력한 값이 없습니다.");
+            if (addArr.length >= 200) {
+                Swal.fire('더 추가할 수 없습니다.');
             } else {
-                var reg = /[^a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣]/gim;
-                if (reg.test(value)) {
-                    alert("입력값을 확인하세요.")
+                var value = $value;
+                if (value == "") {
+                    Swal.fire({
+                        icon: 'error',
+                        title: '어머나',
+                        text: '입력한 값이 없습니다.',
+                    });
                 } else {
-                    if (checkResult == "") {
-                        upload(value);
+                    var reg = /[^a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣]/gim;
+                    if (reg.test(value)) {
+                        Swal.fire({
+                            icon: 'question',
+                            title: '확장자에요',
+                            text: '입력값을 확인하세요.',
+                        });
                     } else {
-                        var resultArr = checkResult.split(",");
-                        if (resultArr.indexOf(value) != -1) {
-                            alert("이미 존재합니다.");
+                        if (checkResult == "") {
+                            upload(value);
                         } else {
-                            resultArr.push(value);
+                            var resultArr = checkResult.split(",");
+                            if (resultArr.indexOf(value) != -1) {
+                                Swal.fire('이미 존재합니다.');
+                            } else {
+                                resultArr.push(value);
+                            }
+                            upload(resultArr.join(","));
                         }
-                        upload(resultArr.join(","));
                     }
                 }
             }
@@ -140,9 +162,9 @@
             var value;
             var resultArr = checkResult.split(",");
             for (var i = 0; i < resultArr.length; i++) {
-                if (resultArr[i] == obj.id) {
+                if (resultArr[i] == obj.name) {
                     resultArr.splice(i, 1);
-                    addArr.splice(addArr.indexOf(obj.id), 1);
+                    addArr.splice(addArr.indexOf(obj.name), 1);
                 }
             }
             value = resultArr.join(",");
@@ -150,25 +172,21 @@
         }
 
         function upload(value) {
-            if (addArr.length >= 200) {
-                alert("더 추가할 수 없습니다.");
-            } else {
-                $.ajax({
-                    type: "POST",
-                    url: "/uploadValue",
-                    data: JSON.stringify({
-                        no: file.no,
-                        file: value,
-                        ip: file.ip
-                    }),
-                    dataType: 'json',
-                    contentType: "application/json",
-                    success: (data) => {
-                        file = data;
-                        getValue(file);
-                    }
-                });
-            }
+            $.ajax({
+                type: "POST",
+                url: "/uploadValue",
+                data: JSON.stringify({
+                    no: file.no,
+                    file: value,
+                    ip: file.ip
+                }),
+                dataType: 'json',
+                contentType: "application/json",
+                success: (data) => {
+                    file = data;
+                    getValue(file);
+                }
+            });
         }
 
         function setValue(obj) {
@@ -194,17 +212,17 @@
                 }
                 for (var add of newArr) {
                     $('#addFile')
-                        .append(`<label for="${add}" class="${add}">${add}<button type="button" id="${add}" class="${add}" onclick="removeValue(this)" name="addButton">X</button></label>`)
+                        .append(`<label id="${add}" >${add}<input type="button" name="${add}" onclick="removeValue(this)" class="addButton" value="X"></label>`)
                 }
             }
-            var removeArr = $('button:button[name="addButton"]');
+            var removeArr = $('#addFile').find('label');
 
             for (var arr of removeArr) {
                 if (addArr.indexOf(arr.id) == -1) {
-                    $('.' + arr.id).remove();
+                    $('#' + arr.id).remove();
                 }
             }
-            var num = $('button:button[name="addButton"]').length;
+            var num = $('.addButton').length;
             $("p").text(num + "/200");
         }
 
@@ -247,7 +265,7 @@
                     <td>
                         <div class="fileDiv">
                             <p>0/200</p>
-                            <div id="addFile" style="margin-top: 5px">
+                            <div id="addFile">
                             </div>
                         </div>
                     </td>
