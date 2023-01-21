@@ -13,11 +13,11 @@
         table {
             margin-left: 10px;
             border-collapse: collapse;
-            width: 80%;
+            width: 90%;
         }
 
         th {
-            width: 120px;
+            width: 140px;
             text-align: left;
         }
 
@@ -66,17 +66,21 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
     <script type="text/javascript">
 
-        var checkArr = ["bat", "cmd", "com", "cpl", "exe", "scr", "js"];
+        var checkArr = [];
         var addArr = [];
         var checkResult = $("#checkResult").value || "";
         var file = {};
 
         $(document).ready(function () {
-            for (var value of checkArr) {
-                $('#checkDiv')
-                    .append(`<input type="checkbox" onchange="checkBox(this)" id="${value}" name="check" value="${value}">`)
-                    .append(`<label for="${value}">${value}</label>`)
-            }
+            $.getJSON("/getCheck", function (json) {
+                checkArr = json.file.split(",");
+                for (var value of checkArr) {
+                    $('#checkDiv')
+                        .append(`<input type="checkbox" onchange="checkBox(this)" id="${value}" name="check" value="${value}">`)
+                        .append(`<label for="${value}" style="white-space: nowrap; ">${value}<input type="button" name="${value}" onclick="removeChack(this)" class="addButton" value="x"></label>`)
+                }
+            });
+
 
             $.getJSON("https://api.ipify.org?format=jsonp&callback=?",
                 function (json) {
@@ -86,6 +90,88 @@
             );
 
         });
+
+        function addCheck() {
+            Swal.fire({
+                title: '추가하고 싶은 확장자를 넣어주세요',
+                input: 'text',
+                inputAttributes: {
+                    autocapitalize: 'off'
+                },
+                showCancelButton: true,
+                confirmButtonText: 'Try',
+                showLoaderOnConfirm: true,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    if (checkArr.indexOf(result.value) != -1) {
+                        Swal.fire('이미 존재합니다.');
+                    } else {
+                        checkArr = checkArr.concat(result.value);
+                        fetch(`/updateCheck`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({
+                                data: checkArr.toString()
+                            }),
+                        })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error(response.statusText)
+                                }
+                                return Swal.fire({
+                                    title: `추가되었습니다.`
+                                }).then((result) => {
+                                    location.reload();
+                                })
+                            })
+                            .catch(error => {
+                                Swal.showValidationMessage(
+                                    `Request failed: ${error}`
+                                )
+                            })
+                    }
+                }
+            })
+        }
+
+        function removeChack(obj) {
+            Swal.fire({
+                title: '고정확장자를 제거할까요?',
+                showDenyButton: true,
+                showCancelButton: true,
+                confirmButtonText: 'OK'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    checkArr = checkArr.filter((element) => element !== obj.name);
+                    fetch(`/updateCheck`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            data: checkArr.toString()
+                        }),
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(response.statusText)
+                            }
+                            return Swal.fire({
+                                title: `제거되었습니다.`
+                            }).then((result) => {
+                                location.reload();
+                            })
+                        })
+                        .catch(error => {
+                            Swal.showValidationMessage(
+                                `Request failed: ${error}`
+                            )
+                        })
+                }
+            })
+        }
 
         function getValue() {
             $.ajax({
@@ -215,14 +301,14 @@
                         .append(`<label id="${add}" >${add}<input type="button" name="${add}" onclick="removeValue(this)" class="addButton" value="X"></label>`)
                 }
             }
-            var removeArr = $('#addFile').find('label');
+            var removeArr = $('#addFile>label');
 
             for (var arr of removeArr) {
                 if (addArr.indexOf(arr.id) == -1) {
                     $('#' + arr.id).remove();
                 }
             }
-            var num = $('.addButton').length;
+            var num = $('#addFile>label').length;
             $("p").text(num + "/200");
         }
 
@@ -232,7 +318,7 @@
 </head>
 
 <body>
-<div style="width: 850px;">
+<div style="width: 80%;">
     <hr>
     <div style="padding-left: 20px;">
         <h1>◎ 파일 확장자 차단</h1>
@@ -243,7 +329,9 @@
             <table>
                 <tr>
                     <th>
-                        <label>고정 확장자</label>
+                        <label>고정 확장자
+                            <button type="button" id="addCheck" onclick="addCheck()" class="addButton">+추가</button>
+                        </label>
                     </th>
                     <td>
                         <div id="checkDiv"></div>
@@ -256,9 +344,7 @@
                     <td>
                         <input type="text" id="addText" placeholder="확장자 입력" maxlength="20"
                                onkeyup="if(window.event.keyCode==13){addValue(addText.value)}">
-                        <button type="button"
-                                id="add" onclick="addValue(addText.value)">+추가
-                        </button>
+                        <button type="button" id="add" onclick="addValue(addText.value)">+추가</button>
                     </td>
                 </tr>
                 <tr>

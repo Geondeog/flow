@@ -25,6 +25,18 @@ public class RootController {
     }
 
     @ResponseBody
+    @RequestMapping("/getCheck")
+    public ResponseEntity getCheck() {
+        return new ResponseEntity<>(fileService.getCheck(),HttpStatus.OK);
+    }
+
+    @ResponseBody
+    @RequestMapping("/updateCheck")
+    public ResponseEntity updateCheck(@RequestBody Map param) {
+        return new ResponseEntity<>(fileService.updateCheck(param),HttpStatus.OK);
+    }
+
+    @ResponseBody
     @RequestMapping("/getValue")
     public ResponseEntity getValue(@RequestBody Map param) {
         return new ResponseEntity<>(fileService.findFile(param),HttpStatus.OK);
