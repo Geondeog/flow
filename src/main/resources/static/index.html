@@ -117,16 +117,21 @@
             if (value == "") {
                 alert("입력한 값이 없습니다.");
             } else {
-                if (checkResult == "") {
-                    upload(value);
+                var reg = /[^a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣]/gim;
+                if (reg.test(value)) {
+                    alert("입력값을 확인하세요.")
                 } else {
-                    var resultArr = checkResult.split(",");
-                    if (resultArr.indexOf(value) != -1) {
-                        alert("이미 존재합니다.");
+                    if (checkResult == "") {
+                        upload(value);
                     } else {
-                        resultArr.push(value);
+                        var resultArr = checkResult.split(",");
+                        if (resultArr.indexOf(value) != -1) {
+                            alert("이미 존재합니다.");
+                        } else {
+                            resultArr.push(value);
+                        }
+                        upload(resultArr.join(","));
                     }
-                    upload(resultArr.join(","));
                 }
             }
         }
@@ -152,7 +157,7 @@
                     type: "POST",
                     url: "/uploadValue",
                     data: JSON.stringify({
-                        no : file.no,
+                        no: file.no,
                         file: value,
                         ip: file.ip
                     }),
@@ -171,9 +176,9 @@
             checkResult = value;
             document.getElementById("checkResult").value = value;
             var newArr = [];
-            if (value == ""){
+            if (value == "") {
                 addArr = [];
-            }else {
+            } else {
                 document.getElementById("addText").value = null;
                 var resultArr = value.split(",");
                 for (var i = 0; i < resultArr.length; i++) {
