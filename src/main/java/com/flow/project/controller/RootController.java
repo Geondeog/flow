@@ -27,15 +27,12 @@ public class RootController {
     @ResponseBody
     @RequestMapping("/getValue")
     public ResponseEntity getValue(@RequestBody Map param) {
-        return new ResponseEntity<>(fileService.findFile((String)param.get("ip")),HttpStatus.OK);
+        return new ResponseEntity<>(fileService.findFile(param),HttpStatus.OK);
     }
 
     @ResponseBody
     @RequestMapping("/uploadValue")
     public ResponseEntity uploadValue(@RequestBody Map param) {
-        File file = new File();
-        file.setFile((String)param.get("file"));
-        file.setIp((String)param.get("ip"));
-        return new ResponseEntity<>(fileService.uploadFile(file),HttpStatus.OK);
+        return new ResponseEntity<>(fileService.uploadFile(param),HttpStatus.OK);
     }
 }

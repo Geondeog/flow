@@ -59,7 +59,7 @@
         var checkArr = ["bat", "cmd", "com", "cpl", "exe", "scr", "js"];
         var addArr = [];
         var checkResult = $("#checkResult").value || "";
-        var ip;
+        var file = {};
 
         $(document).ready(function () {
             for (var value of checkArr) {
@@ -70,24 +70,23 @@
 
             $.getJSON("https://api.ipify.org?format=jsonp&callback=?",
                 function (json) {
-                    ip = json.ip;
-                    getValue(ip);
+                    file.ip = json.ip;
+                    getValue();
                 }
             );
 
         });
 
-        function getValue(value) {
+        function getValue() {
             $.ajax({
                 type: "post",
                 url: "/getValue",
-                data: JSON.stringify({
-                    ip: value,
-                }),
+                data: JSON.stringify(file),
                 dataType: 'json',
                 contentType: "application/json",
                 success: (data) => {
-                    setValue(data.file);
+                    file = data;
+                    setValue(file);
                 }
             });
         }
@@ -153,19 +152,22 @@
                     type: "POST",
                     url: "/uploadValue",
                     data: JSON.stringify({
+                        no : file.no,
                         file: value,
-                        ip: ip
+                        ip: file.ip
                     }),
                     dataType: 'json',
                     contentType: "application/json",
                     success: (data) => {
-                        getValue(data.ip);
+                        file = data;
+                        getValue(file);
                     }
                 });
             }
         }
 
-        function setValue(value) {
+        function setValue(obj) {
+            var value = obj.file || "";
             checkResult = value;
             document.getElementById("checkResult").value = value;
             var newArr = [];
