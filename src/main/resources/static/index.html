@@ -44,7 +44,7 @@
             word-break: break-all;
         }
 
-        #addFile label {
+        #addFile div {
             padding: 1px;
             margin: 1px;
             border: 1px solid #7c7c7b;
@@ -307,11 +307,10 @@
                 }
                 for (var add of newArr) {
                     $('#addFile')
-                        .append(`<label id="${add}" >${add}</label>`)
-                        .append('<input type="button" name="${add}" onclick="removeValue(this)" class="addButton" value="X">')
+                        .append(`<div id="${add}" >${add}<input type="button" name="${add}" onclick="removeValue(this)" class="addButton" value="X"></div>`)
                 }
             }
-            var removeArr = $('#addFile>label');
+            var removeArr = $('#addFile>div');
 
             for (var arr of removeArr) {
                 if (addArr.indexOf(arr.id) == -1) {
@@ -319,7 +318,7 @@
                     $('input[name=' + arr.id + ']').remove();
                 }
             }
-            var num = $('#addFile>label').length;
+            var num = $('#addFile>div').length;
             $("p").text(num + "/200");
         }
 
