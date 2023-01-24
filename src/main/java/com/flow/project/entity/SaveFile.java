@@ -1,6 +1,8 @@
 package com.flow.project.entity;
 
-import lombok.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
@@ -8,17 +10,27 @@ import java.time.LocalDateTime;
 
 @Data
 @ToString @Entity
-@Table(name="use_file")
+@Table(name="save_file")
 @EqualsAndHashCode(of="no")
-public class File {
+public class SaveFile {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int no;
+    private int uno;
 
     @Lob
-    private String file;
+    @Column(name = "originalFileName")
+    private String name;
+    @Lob
+    private String savedFileName;
+    @Lob
+    private String savedFilePath;
+
     private String ip;
+
+    @ManyToOne
+    @JoinColumn(name = "no")
+    private UseFile file;
 
     @CreationTimestamp
     private LocalDateTime updatedate = LocalDateTime.now();

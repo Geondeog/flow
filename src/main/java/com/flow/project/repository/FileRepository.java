@@ -1,12 +1,12 @@
 package com.flow.project.repository;
 
-import com.flow.project.entity.File;
+import com.flow.project.entity.UseFile;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
-public interface FileRepository extends JpaRepository<File, Long> {
+public interface FileRepository extends JpaRepository<UseFile, Long> {
     @Transactional(readOnly=true)
-    Optional<File> findTopByIpOrderByNoDesc(String ip);
+    Optional<UseFile> findTopByIpOrderByNoDesc(String ip);
 }

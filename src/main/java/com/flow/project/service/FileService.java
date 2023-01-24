@@ -1,12 +1,10 @@
 package com.flow.project.service;
 
 import com.flow.project.entity.CheckFile;
-import com.flow.project.entity.File;
+import com.flow.project.entity.UseFile;
 import com.flow.project.repository.CheckFileRepository;
 import com.flow.project.repository.FileRepository;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,18 +14,16 @@ import java.util.Optional;
 @Service
 public class FileService {
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
-
     @Autowired
     private FileRepository fileRepository;
 
     @Autowired
     private CheckFileRepository checkFileRepository;
 
-    public Optional<File> findFile(Map param){
-        Optional<File> file = fileRepository.findTopByIpOrderByNoDesc((String)param.get("ip"));
+    public Optional<UseFile> findFile(Map param){
+        Optional<UseFile> file = fileRepository.findTopByIpOrderByNoDesc((String)param.get("ip"));
         if(!file.isPresent()){
-            File newFile = new File();
+            UseFile newFile = new UseFile();
             newFile.setIp((String)param.get("ip"));
             fileRepository.save(newFile);
             file = fileRepository.findTopByIpOrderByNoDesc((String)param.get("ip"));
@@ -35,8 +31,8 @@ public class FileService {
         return file;
     }
 
-    public File uploadFile(Map param){
-        File file = new File();
+    public UseFile uploadFile(Map param){
+        UseFile file = new UseFile();
         file.setNo((Integer)param.get("no"));
         file.setFile((String)param.get("file"));
         file.setIp((String)param.get("ip"));
@@ -49,6 +45,7 @@ public class FileService {
         if(!file.isPresent()){
             CheckFile checkFile = new CheckFile();
             checkFile.setFile("bat,cmd,com,cpl,exe,scr,js");
+            checkFile.setPw("1234");
             checkFileRepository.save(checkFile);
             file = checkFileRepository.findCheck();
         }
@@ -62,7 +59,6 @@ public class FileService {
         String value = checkFile.getFile();
         String[] checkArr = value.split(",");
         if(!checkArr.equals(newValue.split(","))) {
-            logger.info(newValue);
             checkFile.setFile(newValue);
             checkFileRepository.save(checkFile);
         }

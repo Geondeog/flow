@@ -6,6 +6,40 @@
     <title>파일 확장자</title>
 
     <style>
+        .insert {
+            padding: 20px 30px;
+            display: block;
+            width: 70%;
+            margin: 20px auto;
+            border: 1px solid #dbdbdb;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+        }
+
+        .insert .file-list {
+            height: auto;
+            min-height: 150px;
+            overflow: auto;
+            border: 1px solid #989898;
+            padding: 10px;
+            margin-top: 5px;
+        }
+
+        .insert .file-list .filebox p {
+            font-size: 14px;
+            margin-top: 10px;
+            display: inline-block;
+        }
+
+        .insert .file-list .filebox .delete {
+            color: #ff5353;
+            margin-left: 5px;
+            background-color: transparent;
+            cursor: pointer;
+            border-color: #ff5353;
+        }
+
         hr {
             width: 100%;
         }
@@ -66,13 +100,16 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
     <script type="text/javascript">
 
-        var checkArr = [];
-        var addArr = [];
-        var checkResult = $("#checkResult").value || "";
-        var file = {};
+        var checkArr = new Array();
+        var pw = "";
+        var addArr = new Array();
+        var file = new Map;
+        var fileNo = 0;
+        var filesArr = new Array();
 
         $(document).ready(function () {
             $.getJSON("/getCheck", function (json) {
+                pw = json.pw;
                 checkArr = json.file.split(",");
                 for (var value of checkArr) {
                     $('#checkDiv')
@@ -90,6 +127,66 @@
             );
 
         });
+
+        function getValue() {
+            $.ajax({
+                type: "post",
+                url: "/getValue",
+                data: JSON.stringify(file),
+                dataType: 'json',
+                contentType: "application/json",
+                success: (data) => {
+                    file = data;
+                    getFiles();
+                    setValue(file);
+                }
+            });
+        }
+
+        function getFiles() {
+            $.ajax({
+                method: 'POST',
+                url: "/getFiles",
+                data: JSON.stringify(file),
+                dataType: 'json',
+                contentType: "application/json",
+                success: (data) => {
+                    if (data.files.length > 0) {
+                        addFiles(data);
+                    }
+                }
+            });
+        }
+
+        function fileCheck(obj) {
+            var value = obj.value;
+            if (value === 'show') {
+                Swal.fire({
+                    title: '확장자 제어하시겠습니까?',
+                    input: 'password',
+                    inputPlaceholder: 'Enter your password',
+                    inputAttributes: {
+                        maxlength: 10,
+                        autocapitalize: 'off',
+                        autocorrect: 'off'
+                    }
+                }).then((result) => {
+                    if (pw === result.value) {
+                        obj.value = 'hide';
+                        $('.insert').hide();
+                        $('#addTable').show();
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: '비밀번호 오류',
+                            text: '비밀번호를 확인하세요.',
+                        });
+                    }
+                })
+            } else {
+                location.reload();
+            }
+        }
 
         function addCheck() {
             Swal.fire({
@@ -110,37 +207,37 @@
                             title: '확장자형식인가요?',
                             text: '입력값을 확인하세요.',
                         });
-                    } else{
-                    if (checkArr.indexOf(result.value) != -1) {
-                        Swal.fire('이미 존재합니다.');
                     } else {
-                        checkArr = checkArr.concat(result.value);
-                        fetch(`/updateCheck`, {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify({
-                                data: checkArr.toString()
-                            }),
-                        })
-                            .then(response => {
-                                if (!response.ok) {
-                                    throw new Error(response.statusText)
-                                }
-                                return Swal.fire({
-                                    title: `추가되었습니다.`
-                                }).then((result) => {
-                                    location.reload();
+                        if (checkArr.indexOf(result.value) != -1) {
+                            Swal.fire('이미 존재합니다.');
+                        } else {
+                            checkArr = checkArr.concat(result.value);
+                            fetch(`/updateCheck`, {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify({
+                                    data: checkArr.toString()
+                                }),
+                            })
+                                .then(response => {
+                                    if (!response.ok) {
+                                        throw new Error(response.statusText)
+                                    }
+                                    return Swal.fire({
+                                        title: `추가되었습니다.`
+                                    }).then((result) => {
+                                        location.reload();
+                                    })
                                 })
-                            })
-                            .catch(error => {
-                                Swal.showValidationMessage(
-                                    `Request failed: ${error}`
-                                )
-                            })
+                                .catch(error => {
+                                    Swal.showValidationMessage(
+                                        `Request failed: ${error}`
+                                    )
+                                })
+                        }
                     }
-                }
                 }
             })
         }
@@ -182,22 +279,8 @@
             })
         }
 
-        function getValue() {
-            $.ajax({
-                type: "post",
-                url: "/getValue",
-                data: JSON.stringify(file),
-                dataType: 'json',
-                contentType: "application/json",
-                success: (data) => {
-                    file = data;
-                    setValue(file);
-                }
-            });
-        }
-
         function checkBox(checked) {
-            var value = checkResult;
+            var value = $("#checkResult").val();
             if (checked.checked == true) {
                 if (value == "") {
                     value = checked.getAttribute("value");
@@ -237,10 +320,10 @@
                             text: '입력값을 확인하세요.',
                         });
                     } else {
-                        if (checkResult == "") {
+                        if ($("#checkResult").val() == "") {
                             upload(value);
                         } else {
-                            var resultArr = checkResult.split(",");
+                            var resultArr = $("#checkResult").val().split(",");
                             if (resultArr.indexOf(value) != -1) {
                                 Swal.fire('이미 존재합니다.');
                             } else {
@@ -255,7 +338,7 @@
 
         function removeValue(obj) {
             var value;
-            var resultArr = checkResult.split(",");
+            var resultArr = $("#checkResult").val().split(",");
             for (var i = 0; i < resultArr.length; i++) {
                 if (resultArr[i] == obj.name) {
                     resultArr.splice(i, 1);
@@ -279,20 +362,19 @@
                 contentType: "application/json",
                 success: (data) => {
                     file = data;
-                    getValue(file);
+                    setValue(file);
                 }
             });
         }
 
         function setValue(obj) {
             var value = obj.file || "";
-            checkResult = value;
-            document.getElementById("checkResult").value = value;
+            $("#checkResult").val(value);
             var newArr = [];
             if (value == "") {
                 addArr = [];
             } else {
-                document.getElementById("addText").value = null;
+                $("#addText").val('');
                 var resultArr = value.split(",");
                 for (var i = 0; i < resultArr.length; i++) {
                     $('input:checkbox[name="check"]').each(function () {
@@ -319,10 +401,166 @@
                 }
             }
             var num = $('#addFile>div').length;
-            $("p").text(num + "/200");
+            $("#fileLength").text(num + "/200");
+        }
+
+        function addFiles(obj) {
+            var maxFileCnt = 5;   // 첨부파일 최대 개수
+            var attFileCnt = $('.filebox').length;    // 기존 추가된 첨부파일 개수
+            var remainFileCnt = maxFileCnt - attFileCnt;    // 추가로 첨부가능한 개수
+            var curFileCnt = obj.files.length;  // 현재 선택된 첨부파일 개수
+
+            // 첨부파일 개수 확인
+            if (curFileCnt > remainFileCnt) {
+                Swal.fire({
+                    icon: 'error',
+                    title: '첨부 불가',
+                    text: '첨부파일은 최대 ' + maxFileCnt + '개 까지 첨부 가능합니다.',
+                });
+            }
+
+            for (var i = 0; i < Math.min(curFileCnt, remainFileCnt); i++) {
+                const file = obj.files[i];
+                filesArr.push(file);
+                /*var reader = new FileReader();
+                reader.onload = function () {
+
+                };
+                reader.readAsDataURL(file);*/
+
+                if (validation(file)) {
+                    $('.file-list')
+                        .append('<div id="file' + fileNo + '" class="filebox">' +
+                            '<p class="name">' + file.name + '</p>' +
+                            '<input type="button" class="delete" onclick="deleteFile(' + fileNo + ');" value="x"/>' +
+                            '</div>')
+                    fileNo++;
+                } else {
+                    continue;
+                }
+            }
+            $("input:file").val('');
+        }
+
+
+        /* 첨부파일 검증 */
+        function validation(obj) {
+            var name = obj.name;
+            if (name.lastIndexOf('.') == -1) {
+                Swal.fire({
+                    icon: 'error',
+                    title: '첨부 불가',
+                    text: '확장자가 없는 파일은 제외되었습니다.',
+                });
+                return false;
+            } else {
+                var fileType = name.substring((name.lastIndexOf(".") + 1), name.length).toLowerCase();
+                var resultArr = $("#checkResult").val().split(",");
+                if (resultArr.indexOf(fileType) != -1) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: '첨부 불가',
+                        text: '첨부가 불가능한 파일은 제외되었습니다.',
+                    });
+                    return true;
+                } else {
+                    return true;
+                }
+            }
+        }
+
+        /* 첨부파일 삭제 */
+        function deleteFile(num) {
+            if(!filesArr[num].uno){
+                document.querySelector("#file" + num).remove();
+                filesArr[num].is_delete = true;
+            } else {
+                Swal.fire({
+                    title: '저장한 파일을 삭제할까요?',
+                    showDenyButton: true,
+                    showCancelButton: true,
+                    confirmButtonText: 'OK'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch(`/removeFile`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify(filesArr[num]
+                            ),
+                        })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error(response.statusText)
+                                }
+                                return Swal.fire({
+                                    title: `삭제되었습니다.`
+                                }).then((result) => {
+                                    location.reload();
+                                })
+                            })
+                            .catch(error => {
+                                Swal.showValidationMessage(
+                                    `Request failed: ${error}`
+                                )
+                            })
+                    }
+                })
+            }
+        }
+
+        /* 폼 전송 */
+        function submitForm() {
+            // 폼데이터 담기
+            var form = document.querySelector("form");
+            var formData = new FormData(form);
+            formData.append('file', new Blob([JSON.stringify(file)], {type: "application/json"}));
+            for (var i = 0; i < filesArr.length; i++) {
+                // 삭제되지 않은 파일만 폼데이터에 담기
+                if (!filesArr[i].is_delete) {
+                    formData.append("attach_file", filesArr[i]);
+                } else{
+                    formData.append("remove_file", filesArr[i]);
+                }
+            }
+            if (formData.get('attach_file') == null) {
+                Swal.fire({
+                    icon: 'error',
+                    title: '저장불가',
+                    text: '저장할 파일이 없습니다.',
+                });
+            } else {
+                $.ajax({
+                    method: 'POST',
+                    enctype: "multipart/form-data",
+                    url: "/fileUpload",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (data) {
+                        return Swal.fire({
+                            title: `파일업로드성공!`
+                        }).then((result) => {
+                            location.reload();
+                        })
+                    },
+                    error: function (xhr, status, error) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: '오류 발생',
+                            text: '서버오류로 지연되고있습니다. 잠시 후 다시 시도해주시기 바랍니다.',
+                        });
+                        return false;
+                    }
+                });
+            }
+            return false;
         }
 
     </script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
 
 
 </head>
@@ -332,11 +570,20 @@
     <hr>
     <div style="padding-left: 20px;">
         <h1>◎ 파일 확장자 차단</h1>
+        <button type="button" style="float: right;" onclick="fileCheck(this)" class="addButton" value="show">관리하기
+        </button>
         <hr color="black">
         <div>
             <h2>파일확장자에 따라 특정 형식의 파일을 첨부하거나 전송하지 못하도록 제한</h2>
             <input type="text" id="checkResult" readonly hidden>
-            <table>
+            <div class="insert">
+                <form method="POST" onsubmit="return submitForm();" enctype="multipart/form-data">
+                    <input type="file" onchange="addFiles(this);" multiple/>
+                    <input type="submit" value="저장" style="float: right;"/>
+                    <div class="file-list"></div>
+                </form>
+            </div>
+            <table id="addTable" hidden>
                 <tr>
                     <th>
                         <label>고정 확장자
@@ -360,7 +607,7 @@
                 <tr>
                     <td>
                         <div class="fileDiv">
-                            <p>0/200</p>
+                            <p id="fileLength">0/200</p>
                             <div id="addFile">
                             </div>
                         </div>
