@@ -87,7 +87,7 @@ public class UploadService {
     private boolean isExist(String check, String extension) {
         if (check != null) {
             String[] checkArr = check.split(",");
-            return Arrays.stream(checkArr).anyMatch(extension::equals);
+            return Arrays.stream(checkArr).anyMatch((item)-> item.toLowerCase().equals(extension.toLowerCase()));
         }
         return false;
     }
