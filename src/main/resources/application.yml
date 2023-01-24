@@ -7,6 +7,10 @@ spring:
     url: jdbc:postgresql://svc.gksl2.cloudtype.app:32564/flow
     username: admin_k
     password: admin_k
+  servlet:
+    multipart:
+      max-file-size: 1000MB
+      max-request-size: 1000MB
 
   jpa:
     hibernate:

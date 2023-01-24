@@ -406,37 +406,46 @@
 
         function addFiles(obj) {
             var maxFileCnt = 5;   // 첨부파일 최대 개수
-            var attFileCnt = $('.filebox').length;    // 기존 추가된 첨부파일 개수
-            var remainFileCnt = maxFileCnt - attFileCnt;    // 추가로 첨부가능한 개수
-            var curFileCnt = obj.files.length;  // 현재 선택된 첨부파일 개수
-
-            // 첨부파일 개수 확인
-            if (curFileCnt > remainFileCnt) {
+            var maxFileSize = 1000;
+            if (file.size > 1000) {
                 Swal.fire({
                     icon: 'error',
                     title: '첨부 불가',
-                    text: '첨부파일은 최대 ' + maxFileCnt + '개 까지 첨부 가능합니다.',
+                    text: '첨부파일은 최대 ' + maxFileSize + 'mb 까지 첨부 가능합니다.',
                 });
-            }
+            } else {
+                var attFileCnt = $('.filebox').length;    // 기존 추가된 첨부파일 개수
+                var remainFileCnt = maxFileCnt - attFileCnt;    // 추가로 첨부가능한 개수
+                var curFileCnt = obj.files.length;  // 현재 선택된 첨부파일 개수
 
-            for (var i = 0; i < Math.min(curFileCnt, remainFileCnt); i++) {
-                const file = obj.files[i];
-                filesArr.push(file);
-                /*var reader = new FileReader();
-                reader.onload = function () {
+                // 첨부파일 개수 확인
+                if (curFileCnt > remainFileCnt) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: '첨부 불가',
+                        text: '첨부파일은 최대 ' + maxFileCnt + '개 까지 첨부 가능합니다.',
+                    });
+                }
 
-                };
-                reader.readAsDataURL(file);*/
+                for (var i = 0; i < Math.min(curFileCnt, remainFileCnt); i++) {
+                    const file = obj.files[i];
+                    filesArr.push(file);
+                    /*var reader = new FileReader();
+                    reader.onload = function () {
 
-                if (validation(file)) {
-                    $('.file-list')
-                        .append('<div id="file' + fileNo + '" class="filebox">' +
-                            '<p class="name">' + file.name + '</p>' +
-                            '<input type="button" class="delete" onclick="deleteFile(' + fileNo + ');" value="x"/>' +
-                            '</div>')
-                    fileNo++;
-                } else {
-                    continue;
+                    };
+                    reader.readAsDataURL(file);*/
+
+                    if (validation(file)) {
+                        $('.file-list')
+                            .append('<div id="file' + fileNo + '" class="filebox">' +
+                                '<p class="name">' + file.name + '</p>' +
+                                '<input type="button" class="delete" onclick="deleteFile(' + fileNo + ');" value="x"/>' +
+                                '</div>')
+                        fileNo++;
+                    } else {
+                        continue;
+                    }
                 }
             }
             $("input:file").val('');
@@ -471,7 +480,7 @@
 
         /* 첨부파일 삭제 */
         function deleteFile(num) {
-            if(!filesArr[num].uno){
+            if (!filesArr[num].uno) {
                 document.querySelector("#file" + num).remove();
                 filesArr[num].is_delete = true;
             } else {
@@ -520,7 +529,7 @@
                 // 삭제되지 않은 파일만 폼데이터에 담기
                 if (!filesArr[i].is_delete) {
                     formData.append("attach_file", filesArr[i]);
-                } else{
+                } else {
                     formData.append("remove_file", filesArr[i]);
                 }
             }
